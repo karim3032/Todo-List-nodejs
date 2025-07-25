@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: todo-app
-          image: <your-docker-username>/<your-image-name>:<tag>  # <-- Replace this
+          image: karim2324/todo-app:latest  # <-- Replace this
           ports:
             - containerPort: 3000
           env:
