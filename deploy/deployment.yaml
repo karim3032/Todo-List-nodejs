@@ -14,6 +14,8 @@ spec:
       labels:
         app: todo-app
     spec:
+      imagePullSecrets:
+        - name: regcred
       containers:
         - name: todo-app
           image: karim2324/todo-app:latest  # <-- Replace this
