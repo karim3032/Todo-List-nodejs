@@ -1,0 +1,22 @@
+---
+- name: Install and configure K3s master
+  hosts: devops
+  become: true
+  gather_facts: yes
+  roles:
+    - k3s-master
+
+- name: Install Docker
+  hosts: devops
+  become: true
+  gather_facts: yes
+  roles:
+    - docker
+
+#- name: Install and configure K3s workers
+#  hosts: k3s_workers
+#  become: true
+#  gather_facts: yes
+#  roles:
+#    - k3s-worker
+
