@@ -1,0 +1,55 @@
+- name: Install K3s master
+  shell: |
+    curl -sfL https://get.k3s.io | sudo sh -s - \
+      --flannel-backend=vxlan \
+      --disable-network-policy \
+      --write-kubeconfig-mode=644
+  when: not ansible_check_mode
+  changed_when: true
+
+- name: Simulate K3s install (check mode)
+  debug:
+    msg: "K3s master would be installed with flannel-backend=vxlan"
+  when: ansible_check_mode
+  changed_when: true
+
+- name: Wait for K3s master to start
+  shell: systemctl is-active k3s
+  register: k3s_status
+  retries: 10
+  delay: 5
+  until: k3s_status.stdout == "active"
+  when: not ansible_check_mode
+
+- name: Get K3s token
+  slurp:
+    src: /var/lib/rancher/k3s/server/node-token
+  register: token_content
+  when: not ansible_check_mode
+
+- name: Set fact for token
+  set_fact:
+    k3s_token: "{{ token_content.content | b64decode }}"
+  when: not ansible_check_mode
+
+- name: Get master IP
+  command: hostname -I
+  register: ip_output
+  when: not ansible_check_mode
+
+- name: Set fact for master IP
+  set_fact:
+    k3s_master_ip: >-
+      {% if ansible_check_mode %}
+        10.0.0.150
+      {% else %}
+        {{ ip_output.stdout.split()[0] }}
+      {% endif %}
+
+- name: Save token and IP to file
+  copy:
+    dest: /tmp/k3s_info.txt
+    content: |
+      token: {{ k3s_token | default('N/A in check mode') }}
+      ip: {{ k3s_master_ip }}
+  when: not ansible_check_mode or k3s_master_ip is defined
